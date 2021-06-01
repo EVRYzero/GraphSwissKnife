@@ -1,3 +1,5 @@
+import math
+
 from debug.checks import Checks
 from domain.edges import Edge
 from repository.directedgraph import DirectedGraph
@@ -145,3 +147,9 @@ class Service:
         starting_vertex = int(starting_vertex)
         ending_vertex = int(ending_vertex)
         return self.__database.backwards_Dijkstra(starting_vertex, ending_vertex)
+
+    def minimal_spanning_tree(self):
+        return self.__database.kruskal()
+
+    def hamiltonian_cycle_of_low_cost(self):
+        return self.__database.sorted_edges_algorithm()

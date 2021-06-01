@@ -47,6 +47,10 @@ while True:
             ui.get_connected_components_of_graph()
         elif user_choice == "19":
             ui.lowest_cost()
+        elif user_choice == "20":
+            ui.minimal_spanning_tree()
+        elif user_choice == "21":
+            ui.hamiltonian_cycle_of_low_cost()
         else:
             pass
     except CustomException as exception:

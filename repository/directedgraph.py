@@ -1,4 +1,5 @@
 import copy
+import math
 from pathlib import Path
 import random
 
@@ -284,3 +285,137 @@ class DirectedGraph:
                 found = True
                 # Found the walk.
         return found, forward, distance[starting_vertex] if distance.get(starting_vertex, False) else 0
+
+    def merge_all_edges(self):
+        edges = list(self.__dictionary_costs.keys())
+        for edge in edges:
+            if self.__dictionary_costs.get(edge, False) is not False and self.__dictionary_costs.get((edge[1], edge[0]), False) is not False:
+                self.__dictionary_costs[(edge[1], edge[0])] += self.__dictionary_costs[edge]
+                self.remove_edge(Edge(*edge, 0))
+
+    def union(self, parent, rank, first_vertex, second_vertex):
+        first_root = self.find(parent, first_vertex)
+        second_root = self.find(parent, second_vertex)
+
+        if rank[first_root] < rank[second_root]:
+            parent[first_root] = second_root
+        elif rank[first_root] > rank[second_root]:
+            parent[second_root] = first_root
+        # We attach the tree with the smaller rank under the root of the tree with the higher rank (Union by Rank)
+
+        else:
+            parent[second_root] = first_root
+            rank[first_root] += 1
+        # If the ranks of both roots are the same, then we make one as the root and increment the other's rank by one
+
+    def find(self, parent, node):
+        if parent[node] == node:
+            return node
+        return self.find(parent, parent[node])
+
+    def kruskal(self):
+        result = list()
+        # We initialize the list in which we will store all of the edges tied to the Minimal Spanning Tree
+
+        sorted_edges_index = 0
+        result_index = 0
+        # We initialize the indexes we will use in our upcoming computations
+
+        self.merge_all_edges()
+        # We convert the Directed Graph into an Undirected Graph. If the Graph is already Undirected, this function won't modify our Graph.
+
+        sorted_edges = sorted(self.__dictionary_costs.items(), key=lambda edge: edge[1])
+        # We sort all of our edges in a non-decreasing order based on their weight. [Complexity of O(E * logE)]
+
+        parent = {}
+        rank = {}
+
+        for vertex in self.__dictionary_out.keys():
+            parent[vertex] = vertex
+            rank[vertex] = 0
+        # We create self.vertices subsets with single elements (they are "their own parents").
+
+        while result_index < self.vertices - 1:
+            # Number of edges that would belong to the result is equal to self.vertices - 1.
+            vertices, cost = sorted_edges[sorted_edges_index]
+            # We pick the smallest edge existing in our Graph.
+            sorted_edges_index += 1
+            # We increment the index for the next iteration.
+            parent_starting_vertex = self.find(parent, vertices[0])
+            parent_ending_vertex = self.find(parent, vertices[1])
+            # We search for the root of our starting vertex and our ending vertex.
+
+            if parent_starting_vertex != parent_ending_vertex:
+                # We make sure that including this edge does not cause a cycle by comparing the roots of both vertices belonging to the edge.
+                result_index += 1
+                # We increment the index of result for our next edge.
+                result.append((vertices, cost))
+                # We include our edge into our result.
+                self.union(parent, rank, parent_starting_vertex, parent_ending_vertex)
+                # We apply the union-find algorithm, so that we join the two subsets formed by the two vertices into one.
+
+        minimum_cost = 0
+        for vertices, cost in result:
+            minimum_cost += cost
+
+        return result, minimum_cost
+
+    def sorted_edges_algorithm(self):
+        result = list()
+        # We initialize the list in which we will store all of the edges tied to the Hamiltonian Cycle of Low Cost.
+        self.merge_all_edges()
+        # We convert the Directed Graph into an Undirected Graph. If the Graph is already Undirected, this function won't modify our Graph.
+        sorted_edges = sorted(self.__dictionary_costs.items(), key=lambda edge: edge[1])
+        # We sort all of our edges in an increasing order based on their weight. [Complexity of O(E * logE)]
+        for sorted_edge in sorted_edges:
+            result.append(sorted_edge)
+            # We add the edge to our result in order to check if a Hamiltonian Cycle is formed with it.
+            length = 0
+            # We initialize the length of the possible Cycle. This variable will only be used if the result forms a Hamiltonian Cycle.
+            color = {}
+            # We initialize the dictionary of Colors. We will use 3 colors in order to check the state of each vertex:
+            #   GRAY = Has a Degree of One.
+            #   WHITE = Has a Degree of Two.
+            #   BLACK = Has a Degree of Three or More.
+            # Obs: A Hamiltonian Cycle is a closed loop in which every vertex is only passed once (each node inside of the Cycle has a degree of Two).
+            for edge in result:
+                color[edge[0][0]] = "NONE"
+                color[edge[0][1]] = "NONE"
+                # We add every single node from Result inside of the Color dictionary with the value "NONE".
+                length += 1
+                # We also count the length of the possible Cycle.
+            for edge in result:
+                if color[edge[0][0]] == "NONE":
+                    color[edge[0][0]] = "GRAY"
+                    # Starting Node has a degree of One.
+                elif color[edge[0][0]] == "GRAY":
+                    color[edge[0][0]] = "WHITE"
+                    # Starting Node has a degree of Two.
+                elif color[edge[0][0]] == "WHITE":
+                    color[edge[0][0]] = "BLACK"
+                    # Starting Node has a degree of Three or More.
+                if color[edge[0][1]] == "NONE":
+                    color[edge[0][1]] = "GRAY"
+                    # Ending Node has a degree of One.
+                elif color[edge[0][1]] == "GRAY":
+                    color[edge[0][1]] = "WHITE"
+                    # Ending Node has a degree of Two.
+                elif color[edge[0][1]] == "WHITE":
+                    color[edge[0][1]] = "BLACK"
+                    # Ending Node has a degree of Three or More.
+            if all(element == "WHITE" for element in color.values()) is True:
+                # We check if the Result is a Hamiltonian Cycle.
+                if length == self.__vertices:
+                    # We check if its length is equal to the number of vertices / if it goes through every node inside of the Groph.
+                    return result
+                    # We found the Hamiltonian Cycle of Low Cost.
+                else:
+                    # We know that the length of the cycle is smaller than the number of vertices.
+                    result.pop(-1)
+                    # We remove the recently added edge to destroy the Cycle and continue the search.
+            elif any(element == "BLACK" for element in color.values()) is True:
+                # We know that the result has been compromised and can no longer be a Hamiltonian Cycle.
+                result.pop(-1)
+                # We remove the recently added edge to revert its compromised state and continue the search.
+        return []
+        # The Graph contains no Hamiltonian Cycle of Low Cost.

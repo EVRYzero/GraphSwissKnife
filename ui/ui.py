@@ -35,8 +35,13 @@ class UI:
         print("16. Export the current Graph.")
         print("17. Copy Graph locally.")
         print("")
-        print("18. Get all Connected Components of the Graph.")
-        print("19. Find a Lowest Cost Walk between two existing Vertices.")
+        print("== Exercises ==")
+        print("")
+        print("18. Write a program that finds the connected components of an undirected graph using a depth-first traversal of the graph. {Lab 2, Exercise 3}")
+        print("19. Write a program that, given a graph with positive costs and two vertices, finds a lowest cost walk between the given vertices, using a backwards Dijkstra algorithm (Dijkstra algorithm that searches backwards, from the ending vertex). {Lab 3, Exercise 2}")
+        print("20. Write a program that, given an undirected connected graph, constructs a minumal spanning tree using the Kruskal's algorithm. {Lab 4, Exercise 5} [UNCHECKED]")
+        print("21. Given an undirected graph with costs, find a Hamiltonian cycle of low cost (approximate TSP) by using the heuristic of sorting the edges in increasing order of their costs and, for each edge, choose it if and only if it does not close a cycle of length lower than n. {Lab 5, Exercise 9} [UNCHECKED]")
+        print("")
         print("0. Exit.")
         print("")
 
@@ -182,3 +187,24 @@ class UI:
             print("Cost: " + str(cost) + "\n")
         else:
             print("\nSuch a walk doesn't exist.\n")
+
+    def minimal_spanning_tree(self):
+        print("In order to get the minimum spanning tree, the directed graph will be modified so that it fits the undirected graph criteria.")
+        print("If two separate edges are found between two vertices, one of the edges is deleted and their costs are merged into the remaining one using ADDITION.\n")
+        tree, minimum_cost = self.__service.minimal_spanning_tree()
+        print("Minimum Spanning Tree:")
+        for vertices, cost in tree:
+            print(str(vertices[0]) + " ---" + str(cost) + "--- " + str(vertices[1]))
+        print("Total Cost: " + str(minimum_cost) + "\n")
+
+    def hamiltonian_cycle_of_low_cost(self):
+        print("In order to get the hamiltonian cycle of low cost, the directed graph will be modified so that it fits the undirected graph criteria.")
+        print("If two separate edges are found between two vertices, one of the edges is deleted and their costs are merged into the remaining one using ADDITION.\n")
+        cycle = self.__service.hamiltonian_cycle_of_low_cost()
+        if len(cycle) == 0:
+            print("There is no Hamiltonian Cycle of Low Cost.")
+        else:
+            print("Hamiltonian Cycle of Low Cost: ")
+            for vertices, cost in cycle:
+                print(str(vertices[0]) + " ---" + str(cost) + "--- " + str(vertices[1]))
+        print("\n")
